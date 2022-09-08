@@ -28,10 +28,7 @@ object ProductSearch {
     @tailrec
     def findDeepestLeftInNestedTuples(tpe: Type, depth: Int = 0): Int = {
       typeParams(tpe).headOption match {
-        case Some(t) if isTupleSymbol(t.typeSymbol.name.toString) => {
-          c.info(c.enclosingPosition, s"in is Tuple symbol case: (depth = $depth)", false)
-          findDeepestLeftInNestedTuples(t, depth + 1)
-        }
+        case Some(t) if isTupleSymbol(t.typeSymbol.name.toString) => findDeepestLeftInNestedTuples(t, depth + 1)
         case Some(t) => depth
         case None => sys.error("Tuple with no elements (´⊙ω⊙`)ʷᵗᶠ")
       }
