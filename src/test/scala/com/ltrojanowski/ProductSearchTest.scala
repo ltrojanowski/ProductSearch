@@ -7,6 +7,8 @@ class ProductSearchTest extends munit.FunSuite {
   case class Foo(f: String)
   case class Bar(i: Int)
 
+  case class Baz(j: Double)
+
   test("return value of ProductSearch.deepLeft") {
     val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
     val actual = ProductSearchMacros.deepLeft(fooTuple)
@@ -21,11 +23,10 @@ class ProductSearchTest extends munit.FunSuite {
   }
 
   test("return value of ProductSearch.find[Foo]") {
+    val foo = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
     val actual: Foo =
       ProductSearchMacros
-        .find[(((Foo, Int), String), String, Double), Foo](
-          Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
-        )
+        .find[(((Foo, Int), String), String, Double), Foo](foo)
     assert(actual == Foo("asdf"))
   }
 
@@ -36,5 +37,12 @@ class ProductSearchTest extends munit.FunSuite {
           Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), Bar(2)), "asdf", 1.0)
         )
     assert(actual == Bar(2))
+  }
+
+  test("return value of ProductSearch.find[Baz]") {
+    assert(
+      compileErrors(
+        "ProductSearchMacros.find[(((Foo, Int), Bar), String, Double), Baz](Tuple3(Tuple2(Tuple2(Foo(\"asdf\"), 1), Bar(2)), \"asdf\", 1.0))")
+        .contains("This tuple does not contain the searched for type: com.ltrojanowski.ProductSearchTest.Baz"))
   }
 }

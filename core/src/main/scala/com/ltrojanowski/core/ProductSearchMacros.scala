@@ -15,25 +15,14 @@ object ProductSearchMacros {
     }
   }
 
-  def deepLeft[A1](a: (A1)): Any = macro deepLeft_impl[Tuple1[A1]]
-  def deepLeft[A1, A2](a: (A1, A2)): Any = macro deepLeft_impl[Tuple2[A1, A2]]
-  def deepLeft[A1, A2, A3](a: (A1, A2, A3)): Any = macro deepLeft_impl[Tuple3[A1, A2, A3]]
+  def deepLeft[A <: Product](a: A): Any = macro deepLeft_impl[A]
 
   def deepLeft_impl[A: c.WeakTypeTag](c: whitebox.Context)(a: c.Expr[A]): c.Expr[Any] = {
     import c.universe._
 
-    val aTpe = weakTypeOf[A]
-    c.info(c.enclosingPosition, s"a.actualType: ${a.actualType}", false)
-    c.info(c.enclosingPosition, s"aTpe: ${aTpe}", false)
-
-    def typeParams(t: Type): List[Type] = {
-      val tClass = t.typeSymbol.asClass
-      tClass.typeParams.map(_.asType.toType.asSeenFrom(t, tClass))
-    }
-
     @tailrec
     def findDeepestLeftInNestedTuples(tpe: Type, depth: Int = 0): Int = {
-      typeParams(tpe).headOption match {
+      tpe.dealias.typeArgs.headOption match {
         case Some(t) if isTupleSymbol(t.typeSymbol.name.toString) => findDeepestLeftInNestedTuples(t, depth + 1)
         case Some(t) => depth
         case None => sys.error("Tuple with no elements (´⊙ω⊙`)ʷᵗᶠ")
@@ -50,14 +39,18 @@ object ProductSearchMacros {
     import c.universe._
     val bType: Type = weakTypeOf[B]
 
+    case class Node(idx: Int, tpe: Type) {
+      def children: Vector[Node] = tpe.dealias.typeArgs.zipWithIndex.map { case (t, i) => Node(i, t) }.toVector
+      def isTuple: Boolean = isTupleSymbol(tpe.typeSymbol.name.toString)
+    }
+
     @tailrec
-    def moveToSiblingOrBacktrack(curNode: Tree, prevNodes: List[Tree]): (Tree, List[Tree]) = {
+    def moveToSiblingOrBacktrack(curNode: Node, prevNodes: List[Node]): (Node, List[Node]) = {
       prevNodes.headOption match {
-        case None => sys.error(s"This tuple does not contain the searched for type ${bType.typeSymbol.name}")
+        case None => sys.error(s"This tuple does not contain the searched for type: ${bType.typeSymbol.fullName}")
         case Some(parent) => {
-          val indexOfCurrent = parent.children.indexOf(curNode)
           try {
-            (parent.children(indexOfCurrent + 1), prevNodes)
+            (parent.children(curNode.idx + 1), prevNodes)
           } catch {
             case e: IndexOutOfBoundsException => {
               val tail = prevNodes.tail
@@ -70,12 +63,14 @@ object ProductSearchMacros {
     }
 
     @tailrec
-    def findTypeInNestedTuples(currentNode: Tree, previousNodes: List[Tree] = Nil): Tree = {
+    def findTypeInNestedTuples(
+      currentNode: Node, previousNodes: List[Node] = Nil
+    ): List[String] = {
       if (currentNode.tpe == bType) {
-        currentNode
-      } else if (isTupleSymbol(currentNode.tpe.typeSymbol.name.toString)) {
+        (currentNode :: previousNodes).reverse.tail.map(n => s"_${n.idx + 1}")
+      } else if (currentNode.isTuple) {
         // check if tuple and if it is go deeper
-        findTypeInNestedTuples(currentNode.children(1), currentNode :: previousNodes)
+        findTypeInNestedTuples(currentNode.children.head, currentNode :: previousNodes)
       } else {
         // is not tuple and not searched for value, so in parent check next after current node
         // if next after current node does not exist then backtrack
@@ -84,7 +79,7 @@ object ProductSearchMacros {
         findTypeInNestedTuples(newCur, newPrev)
       }
     }
-
-    c.Expr(findTypeInNestedTuples(a.tree, Nil))
+    val result = findTypeInNestedTuples(Node(0, a.actualType)).foldLeft(a.tree) { case (tree, term) => Select(tree, TermName(term)) }
+    c.Expr(result)
   }
 }
