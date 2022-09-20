@@ -5,6 +5,15 @@ import scala.language.experimental.macros
 import scala.reflect.macros.whitebox
 import scala.reflect.macros.blackbox
 
+trait ProductSearch[A, B] {
+  def find(a: A): B
+}
+
+object ProductSearch {
+  implicit def materializeProductSearch[A, B]: ProductSearch[A, B] = macro ProductSearchMacros.find_impl[A, B]
+
+}
+
 object ProductSearchMacros {
 
   private def isTupleSymbol(symbol: String) = {
@@ -20,6 +29,8 @@ object ProductSearchMacros {
   def deepLeft_impl[A: c.WeakTypeTag](c: whitebox.Context)(a: c.Expr[A]): c.Expr[Any] = {
     import c.universe._
 
+//    c.info(c.enclosingPosition, s"foo: ${showRaw(q"t._1._1")}", false)
+
     @tailrec
     def findDeepestLeftInNestedTuples(tpe: Type, depth: Int = 0): Int = {
       tpe.dealias.typeArgs.headOption match {
@@ -33,11 +44,12 @@ object ProductSearchMacros {
     c.Expr(result)
   }
 
-  def find[A <: Product, B](a: A): B = macro find_impl[A, B]
+//  def find[A <: Product, B](a: A): B = macro find_impl[A, B]
 
-  def find_impl[A: c.WeakTypeTag, B: c.WeakTypeTag](c: blackbox.Context)(a: c.Expr[A]): c.Expr[B] = {
+  def find_impl[A: c.WeakTypeTag, B: c.WeakTypeTag](c: blackbox.Context): c.Expr[ProductSearch[A, B]] = {
     import c.universe._
     val bType: Type = weakTypeOf[B]
+    val aType: Type = weakTypeOf[A]
 
     case class Node(idx: Int, tpe: Type) {
       def children: Vector[Node] = tpe.dealias.typeArgs.zipWithIndex.map { case (t, i) => Node(i, t) }.toVector
@@ -79,7 +91,16 @@ object ProductSearchMacros {
         findTypeInNestedTuples(newCur, newPrev)
       }
     }
-    val result = findTypeInNestedTuples(Node(0, a.actualType)).foldLeft(a.tree) { case (tree, term) => Select(tree, TermName(term)) }
-    c.Expr(result)
+    val findImpl =
+      findTypeInNestedTuples(Node(0, aType))
+        .foldLeft(Ident(TermName("a")): Tree) {
+          case (tree, term) => Select(tree, TermName(term))
+        }
+
+    reify {
+      new ProductSearch[A, B] {
+        def find(a: A): B = c.Expr[B](findImpl).splice
+      }
+    }
   }
 }
