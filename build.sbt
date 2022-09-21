@@ -10,7 +10,7 @@ ThisBuild / organization := "com.ltrojanowski"
 
 ThisBuild / licenses := Seq("MIT" -> url("https://github.com/ltrojanowski/product-search/blob/master/LICENSE.md"))
 
-ThisBuild / description := "This library allows you to find a specific type in a nested tuple."
+ThisBuild / description := "This library allows you to find the value of a specific type in a nested tuple."
 
 import xerial.sbt.Sonatype._
 ThisBuild / sonatypeProjectHosting := Some(GitHubHosting("ltrojanowski", "product-search", ""))
