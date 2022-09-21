@@ -6,7 +6,6 @@ class ProductSearchTest extends munit.FunSuite {
 
   case class Foo(f: String)
   case class Bar(i: Int)
-
   case class Baz(j: Double)
 
   test("return value of ProductSearch.deepLeft") {
@@ -47,7 +46,6 @@ class ProductSearchTest extends munit.FunSuite {
     assert(actual == Foo("asdf"))
   }
 
-
   test("return find[Foo] value for Tuple5Syntax") {
     val fooTuple = Tuple5(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), Foo("fdsa"), 1.0, Bar(2), Bar(3))
     val actual = fooTuple.find[Foo]
@@ -60,7 +58,7 @@ class ProductSearchTest extends munit.FunSuite {
     assert(actual == Bar(2))
   }
 
-  test("return value of ProductSearchSyntax find[Baz]") {
+  test("return error when trying to find[Baz] where Baz is not in tuple") {
     assert(
       compileErrors(
         "import ProductSearchSyntax._; val tuple = Tuple3(Tuple2(Tuple2(Foo(\"asdf\"), 1), Bar(2)), \"asdf\", 1.0); tuple.find[Baz]")

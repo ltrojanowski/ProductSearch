@@ -47,6 +47,10 @@ object ProductSearchMacros {
     val bType: Type = weakTypeOf[B]
     val aType: Type = weakTypeOf[A]
 
+    if (!isTupleSymbol(aType.typeSymbol.fullName)) {
+      sys.error(s"ProductSearch.find macro can only be used on tuples, this is a: ${aType.typeSymbol.fullName}")
+    }
+
     case class Node(idx: Int, tpe: Type) {
       def children: Vector[Node] = tpe.dealias.typeArgs.zipWithIndex.map { case (t, i) => Node(i, t) }.toVector
       def isTuple: Boolean = isTupleSymbol(tpe.typeSymbol.fullName)
