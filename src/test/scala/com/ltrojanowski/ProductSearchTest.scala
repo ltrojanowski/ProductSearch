@@ -21,46 +21,45 @@ class ProductSearchTest extends munit.FunSuite {
     assert(actual == Foo("asdf"))
   }
 
-  def find[A, B](a: A)(implicit ps: ProductSearch[A, B]): B = ps.find(a)
+  import ProductSearchSyntax._
 
-  test("return correct value of ProductSearch.find") {
-    val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
-    val actual: Foo = find(fooTuple)(implicitly[ProductSearch[(((Foo, Int), String), String, Double), Foo]])
-    assert(actual == Foo("asdf"))
-  }
-
-  test("return correct value for Tuple3Syntax") {
-    import ProductSearchSyntax._
-    val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
+  test("return find[Foo] value for Tuple1Syntax") {
+    val fooTuple = Tuple1(Tuple2(Tuple2(Foo("asdf"), 1), Foo("fdsa")))
     val actual = fooTuple.find[Foo]
     assert(actual == Foo("asdf"))
   }
 
-//  test("return value of ProductSearch.deepLeft syntax") {
-//    import ProductSearch.Syntax._
-//    val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
-//    val actual = fooTuple.deepLeft
-//    assert(actual == Foo("asdf"))
-//  }
-  
+  test("return find[Foo] value for Tuple2Syntax") {
+    val fooTuple = Tuple2(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), Foo("fdsa"))
+    val actual = fooTuple.find[Foo]
+    assert(actual == Foo("asdf"))
+  }
 
-//  test("return value of ProductSearch.find[Foo]") {
-//    val foo = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
-//    val actual: Foo =
-//      ProductSearchMacros
-//        .find[(((Foo, Int), String), String, Double), Foo](foo)
-//    assert(actual == Foo("asdf"))
-//  }
-//
-//  test("return value of ProductSearch.find[Bar]") {
-//    val actual: Bar =
-//      ProductSearchMacros
-//        .find[(((Foo, Int), Bar), String, Double), Bar](
-//          Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), Bar(2)), "asdf", 1.0)
-//        )
-//    assert(actual == Bar(2))
-//  }
-//
+  test("return find[Foo] value for Tuple3Syntax") {
+    val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), Foo("fdsa"), 1.0)
+    val actual = fooTuple.find[Foo]
+    assert(actual == Foo("asdf"))
+  }
+
+  test("return find[Foo] value for Tuple4Syntax") {
+    val fooTuple = Tuple4(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), Foo("fdsa"), 1.0, Bar(2))
+    val actual = fooTuple.find[Foo]
+    assert(actual == Foo("asdf"))
+  }
+
+
+  test("return find[Foo] value for Tuple5Syntax") {
+    val fooTuple = Tuple5(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), Foo("fdsa"), 1.0, Bar(2), Bar(3))
+    val actual = fooTuple.find[Foo]
+    assert(actual == Foo("asdf"))
+  }
+
+  test("return find[Bar] in nested tuple") {
+    val barTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), ("asdf", (1.0, (Bar(2), "fdas")))), "asdf", 1.0)
+    val actual: Bar = barTuple.find[Bar]
+    assert(actual == Bar(2))
+  }
+
   test("return value of ProductSearchSyntax find[Baz]") {
     assert(
       compileErrors(

@@ -17,7 +17,7 @@ object ProductSearch {
 object ProductSearchMacros {
 
   private def isTupleSymbol(symbol: String) = {
-    val isTupleSymbolPattern = "^Tuple(\\d{1,2})$".r
+    val isTupleSymbolPattern = "^scala.Tuple(\\d{1,2})$".r
     symbol match {
       case isTupleSymbolPattern(size) if Integer.valueOf(size) < 23 => true
       case _ => false
@@ -29,12 +29,10 @@ object ProductSearchMacros {
   def deepLeft_impl[A: c.WeakTypeTag](c: whitebox.Context)(a: c.Expr[A]): c.Expr[Any] = {
     import c.universe._
 
-//    c.info(c.enclosingPosition, s"foo: ${showRaw(q"t._1._1")}", false)
-
     @tailrec
     def findDeepestLeftInNestedTuples(tpe: Type, depth: Int = 0): Int = {
       tpe.dealias.typeArgs.headOption match {
-        case Some(t) if isTupleSymbol(t.typeSymbol.name.toString) => findDeepestLeftInNestedTuples(t, depth + 1)
+        case Some(t) if isTupleSymbol(t.typeSymbol.fullName) => findDeepestLeftInNestedTuples(t, depth + 1)
         case Some(t) => depth
         case None => sys.error("Tuple with no elements (´⊙ω⊙`)ʷᵗᶠ")
       }
@@ -44,8 +42,6 @@ object ProductSearchMacros {
     c.Expr(result)
   }
 
-//  def find[A <: Product, B](a: A): B = macro find_impl[A, B]
-
   def find_impl[A: c.WeakTypeTag, B: c.WeakTypeTag](c: blackbox.Context): c.Expr[ProductSearch[A, B]] = {
     import c.universe._
     val bType: Type = weakTypeOf[B]
@@ -53,7 +49,7 @@ object ProductSearchMacros {
 
     case class Node(idx: Int, tpe: Type) {
       def children: Vector[Node] = tpe.dealias.typeArgs.zipWithIndex.map { case (t, i) => Node(i, t) }.toVector
-      def isTuple: Boolean = isTupleSymbol(tpe.typeSymbol.name.toString)
+      def isTuple: Boolean = isTupleSymbol(tpe.typeSymbol.fullName)
     }
 
     @tailrec
