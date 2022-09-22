@@ -1,19 +1,14 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
-
+ThisBuild / version := "0.1.0"
 ThisBuild / scalaVersion := "2.13.8"
-
 ThisBuild / crossScalaVersions := Seq("2.13.8", "2.12.17")
-
 ThisBuild / name := "product-search"
-
 ThisBuild / organization := "com.ltrojanowski"
-
 ThisBuild / licenses := Seq("MIT" -> url("https://github.com/ltrojanowski/product-search/blob/master/LICENSE.md"))
-
 ThisBuild / description := "This library allows you to find the value of a specific type in a nested tuple."
 
 import xerial.sbt.Sonatype._
-ThisBuild / sonatypeProjectHosting := Some(GitHubHosting("ltrojanowski", "product-search", ""))
+ThisBuild / sonatypeProjectHosting := Some(GitHubHosting("ltrojanowski", "product-search", "luk.trojanowski@gmail.com"))
+ThisBuild / sonatypeCredentialHost := "s01.oss.sonatype.org"
 
 // publish to the sonatype repository
 ThisBuild / publishTo := sonatypePublishToBundle.value
