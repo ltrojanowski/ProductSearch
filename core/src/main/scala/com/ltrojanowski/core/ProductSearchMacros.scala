@@ -24,24 +24,6 @@ object ProductSearchMacros {
     }
   }
 
-  def deepLeft[A <: Product](a: A): Any = macro deepLeft_impl[A]
-
-  def deepLeft_impl[A: c.WeakTypeTag](c: whitebox.Context)(a: c.Expr[A]): c.Expr[Any] = {
-    import c.universe._
-
-    @tailrec
-    def findDeepestLeftInNestedTuples(tpe: Type, depth: Int = 0): Int = {
-      tpe.dealias.typeArgs.headOption match {
-        case Some(t) if isTupleSymbol(t.typeSymbol.fullName) => findDeepestLeftInNestedTuples(t, depth + 1)
-        case Some(t) => depth
-        case None => sys.error("Tuple with no elements (´⊙ω⊙`)ʷᵗᶠ")
-      }
-    }
-    val depth = findDeepestLeftInNestedTuples(a.actualType)
-    val result = (0 to depth).foldLeft(a.tree) { case (t, _) => Select(t, TermName("_1")) }
-    c.Expr(result)
-  }
-
   def find_impl[A: c.WeakTypeTag, B: c.WeakTypeTag](c: blackbox.Context): c.Expr[ProductSearch[A, B]] = {
     import c.universe._
     val bType: Type = weakTypeOf[B]

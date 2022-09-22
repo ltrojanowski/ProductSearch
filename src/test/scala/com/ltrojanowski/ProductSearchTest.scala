@@ -8,12 +8,6 @@ class ProductSearchTest extends munit.FunSuite {
   case class Bar(i: Int)
   case class Baz(j: Double)
 
-  test("return value of ProductSearch.deepLeft") {
-    val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
-    val actual = ProductSearchMacros.deepLeft(fooTuple)
-    assert(actual == Foo("asdf"))
-  }
-
   test("return correct value of implicitly[ProductSearch[_]].find") {
     val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
     val actual = implicitly[ProductSearch[(((Foo, Int), String), String, Double), Foo]].find(fooTuple)
