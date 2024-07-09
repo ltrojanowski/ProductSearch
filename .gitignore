@@ -58,4 +58,14 @@ hs_err_pid*
 .AppleDouble
 .LSOverride
 
+### Bloop ###
+.bloop/
+
+### Metals ###
+.metals/
+project/**/metals.sbt
+
+### VisualStudioCode ###
+.vscode/*
+
 # End of https://www.toptal.com/developers/gitignore/api/sbt,scala,intellij+all

@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0"
 ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / crossScalaVersions := Seq("2.13.8", "2.12.17")
+ThisBuild / crossScalaVersions := Seq("2.13.14", "2.12.17")
 ThisBuild / organization := "com.ltrojanowski"
 ThisBuild / licenses := Seq("MIT" -> url("https://github.com/ltrojanowski/product-search/blob/master/LICENSE.md"))
 ThisBuild / description := "This library allows you to find the value of a specific type in a nested tuple."

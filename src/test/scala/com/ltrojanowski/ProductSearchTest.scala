@@ -8,6 +8,12 @@ class ProductSearchTest extends munit.FunSuite {
   case class Bar(i: Int)
   case class Baz(j: Double)
 
+  case class Triple[A, B, C](first: A, second: B, third: C) extends Product3[A, B, C] {
+    def _1: A = first
+    def _2: B = second
+    def _3: C = third
+  }
+
   test("return correct value of implicitly[ProductSearch[_]].find") {
     val fooTuple = Tuple3(Tuple2(Tuple2(Foo("asdf"), 1), "asdf"), "asdf", 1.0)
     val actual = implicitly[ProductSearch[(((Foo, Int), String), String, Double), Foo]].find(fooTuple)
@@ -55,7 +61,16 @@ class ProductSearchTest extends munit.FunSuite {
   test("return error when trying to find[Baz] where Baz is not in tuple") {
     assert(
       compileErrors(
-        "import ProductSearchSyntax._; val tuple = Tuple3(Tuple2(Tuple2(Foo(\"asdf\"), 1), Bar(2)), \"asdf\", 1.0); tuple.find[Baz]")
-        .contains("This tuple does not contain the searched for type: com.ltrojanowski.ProductSearchTest.Baz"))
+        "import ProductSearchSyntax._; val tuple = Tuple3(Tuple2(Tuple2(Foo(\"asdf\"), 1), Bar(2)), \"asdf\", 1.0); tuple.find[Baz]"
+      )
+        .contains("This product does not contain the searched for type: com.ltrojanowski.ProductSearchTest.Baz")
+    )
   }
+
+  test("return find[Bar] in nested Triple") {
+    val fooTriple = Triple(Triple(Tuple2(Foo("asdf"), 1), "asdf", 2), 3, Bar(4))
+    val actual = fooTriple.find[Foo]
+    assert(actual == Foo("asdf"))
+  }
+
 }
