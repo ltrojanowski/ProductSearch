@@ -22,10 +22,11 @@ lazy val root = (project in file("."))
     testFrameworks += new TestFramework("munit.Framework")
   )
   .dependsOn(core)
+  .aggregate(core)
 
 lazy val core = (project in file("core"))
   .settings(
-    name := "core",
+    name := "product-search-core",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       "org.scalameta" %% "munit" % "0.7.28" % Test
